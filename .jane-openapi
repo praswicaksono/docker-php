@@ -1,0 +1,7 @@
+<?php
+
+return [
+    'openapi-file' => __DIR__ . '/v1.47.yaml',
+    'namespace' => 'PRSW\Docker\Generated',
+    'directory' => __DIR__ . '/generated',
+];

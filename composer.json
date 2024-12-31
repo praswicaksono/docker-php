@@ -1,0 +1,32 @@
+{
+    "name": "prsw/docker-php",
+    "description": "Docker PHP SDK",
+    "type": "library",
+    "require": {
+        "amphp/http-client": "^4.2.1",
+        "jane-php/open-api-runtime": "^7.8",
+        "symfony/http-client": "^7.2"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "PRSW\\Docker\\Generated\\": "generated/",
+            "PRSW\\Docker\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Prasetyo Wicaksono",
+            "email": "pras.wicak92@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require-dev": {
+        "jane-php/open-api-2": "^7.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

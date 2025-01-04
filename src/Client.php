@@ -3,6 +3,16 @@ declare(strict_types=1);
 
 namespace PRSW\Docker;
 
+use Amp\Http\Client\Connection\DefaultConnectionFactory;
+use Amp\Http\Client\Connection\UnlimitedConnectionPool;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Interceptor\ResolveBaseUri;
+use Amp\Http\Client\Interceptor\SetRequestTimeout;
+use Amp\Http\Client\Psr7\PsrAdapter;
+use Amp\Http\Client\Psr7\PsrHttpClient;
+use Amp\Socket\StaticSocketConnector;
+use Laminas\Diactoros\RequestFactory;
+use Laminas\Diactoros\ResponseFactory;
 use PRSW\Docker\Generated\Client as BaseClient;
 use PRSW\Docker\Generated\Endpoint\ContainerLogs;
 use PRSW\Docker\Generated\Endpoint\SystemEvents;
@@ -10,9 +20,10 @@ use PRSW\Docker\Generated\Model\EventMessage;
 use PRSW\Docker\Model\Stream;
 use PRSW\Docker\Stream\DockerRawStream;
 use PRSW\Docker\Stream\JsonResponseStream;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\HttpClient\AmpHttpClient;
-use Symfony\Component\HttpClient\Psr18Client;
+
+use function Amp\Socket\socketConnector;
 
 final class Client extends BaseClient
 {
@@ -24,25 +35,37 @@ final class Client extends BaseClient
         array $additionalPlugins = [],
         array $additionalNormalizers = [],
     ): self {
-        $options += [
-            'bindto' => $socketPath,
-            'base_uri' => 'http://docker'
-        ];
 
-        $client = new Psr18Client(new AmpHttpClient($options));
+        $options['unix_socket'] = $socketPath;
+        return parent::create(self::createAmphpPsrHttpClient($options), $additionalPlugins, $additionalNormalizers);
+    }
 
-        return parent::create($client, $additionalPlugins, $additionalNormalizers);
+    private static function createAmphpPsrHttpClient(array $options = []): ClientInterface
+    {
+        $timeout = $options['timeout'] ?? -1;
+        $connector = new StaticSocketConnector("unix:///{$options['unix_socket']}", socketConnector());
+
+        $client = (new HttpClientBuilder())
+            ->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory($connector)))
+            ->retry((int) $options['retry'] ?? 3)
+            ->intercept(new ResolveBaseUri('http://docker'))
+            ->intercept(new SetRequestTimeout(transferTimeout: $timeout, inactivityTimeout: $timeout))
+            ->build();
+
+        $psrAdapter = new PsrAdapter(
+            new RequestFactory(),
+            new ResponseFactory(),
+        );
+
+        return new PsrHttpClient($client, $psrAdapter);
     }
 
     public function withHttpClientOptions(array $options): self
     {
-        if ($this->httpClient instanceof Psr18Client) {
-            $self = clone $this;
-            $self->httpClient = $this->httpClient->withOptions($options);
-            return $self;
-        }
+        $that = clone $this;
+        $that->httpClient = self::createAmphpPsrHttpClient($options);
 
-        return $this;
+        return $that;
     }
 
     /**

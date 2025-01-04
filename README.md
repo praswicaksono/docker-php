@@ -6,7 +6,6 @@ Dependencies:
 
 - [amphp/http-client](https://github.com/amphp/http-client)
 - [jane-php/open-api-runtime](https://github.com/jane-php/open-api-runtime)
-- [symfony/http-client](https://github.com/symfony/http-client)
 
 Not all streaming based endpoint have implemented yet.
 

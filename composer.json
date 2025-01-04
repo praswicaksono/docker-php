@@ -3,9 +3,11 @@
     "description": "Docker PHP SDK",
     "type": "library",
     "require": {
-        "amphp/http-client": "^4.2.1",
+        "amphp/http-client": "^5.2.1",
         "jane-php/open-api-runtime": "^7.8",
-        "symfony/http-client": "^7.2"
+        "amphp/http-client-guzzle-adapter": "^1.1",
+        "amphp/http-client-psr7": "^1.1",
+        "laminas/laminas-diactoros": "^3.5"
     },
     "license": "MIT",
     "autoload": {
@@ -26,7 +28,7 @@
     },
     "config": {
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": false
         }
     }
 }

@@ -27,7 +27,7 @@ use function Amp\Socket\socketConnector;
 
 final class Client extends BaseClient
 {
-    public const FETCH_STREAM = 'stream';
+    public const string FETCH_STREAM = 'stream';
 
     public static function withHttpClient(
         string $socketPath = '/var/run/docker.sock',
